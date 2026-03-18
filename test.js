@@ -146,7 +146,7 @@ function saveTestRecord() {
   const date = document.getElementById('tf-date').value;
   if (!date) { showToast('When did this exam happen? Suffu needs a date 📆', 'error'); return; }
   data.tests.push({
-    id: 't' + Date.now(),
+    id: generateId('t'),
     date,
     subject: document.getElementById('tf-subject').value,
     coverage: document.getElementById('tf-coverage').value.trim(),
