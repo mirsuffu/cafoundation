@@ -40,7 +40,37 @@ function openClearModal() {
 function closeClearModal() { document.getElementById('clear-modal').classList.remove('show'); }
 
 function showClearStep(n) {
-  document.querySelectorAll('.clear-step').forEach((s, i) => s.classList.toggle('active', i + 1 === n));
+  // Map steps to div IDs
+  const stepMap = {
+    1: 'clear-step-1',
+    2: 'clear-step-2',
+    3: 'clear-step-3a',
+    4: 'clear-step-3b',
+    5: 'clear-step-4' // Not in HTML? Let me check
+  };
+  document.getElementById('clear-step-1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('clear-step-2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('clear-step-3a').style.display = n === 3 ? 'block' : 'none';
+  document.getElementById('clear-step-3b').style.display = n === 4 ? 'block' : 'none';
+}
+
+function advanceClearStep2() {
+  const scope = document.querySelector('input[name="clear-scope"]:checked').value;
+  if (scope === 'user') {
+    document.getElementById('clear-step2-sub').innerHTML = 'Type <strong>DELETE</strong> below to confirm you want to erase your <strong>user data</strong> (progress & chapter ratings).';
+  } else {
+    document.getElementById('clear-step2-sub').innerHTML = 'Type <strong>DELETE</strong> below to confirm you want to erase <strong>EVERYTHING</strong> (including chapters and settings).';
+  }
+  showClearStep(2);
+}
+function advanceClearStep3b() {
+  const pw = document.getElementById('clear-editor-pw').value;
+  if (pw === EDITOR_PASSWORD) { doClearAllData(); }
+  else {
+    document.getElementById('clear-step3b-error').textContent = 'Wrong password. Only Suffu knows the way 🤫';
+    const inp = document.getElementById('clear-editor-pw');
+    inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400);
+  }
 }
 
 function doClearUserData() {
@@ -54,20 +84,4 @@ function doClearUserData() {
 function doClearAllData() {
   data = defaultData(); saveData(); renderAll(); closeClearModal();
   showToast('Everything wiped. Time to rebuild, king 👑', 'info');
-}
-
-function setStep2Sub(text) { document.getElementById('step2-sub').textContent = text; }
-function advanceClearStep2() {
-  const scope = document.querySelector('input[name="clear-scope"]:checked').value;
-  if (scope === 'user') { setStep2Sub('Type "DELETE" to confirm clearing your progress & chapters.'); showClearStep(2); }
-  else { showClearStep(3); }
-}
-function advanceClearStep3b() {
-  const pw = document.getElementById('clear-editor-pw').value;
-  if (pw === EDITOR_PASSWORD) { showClearStep(4); }
-  else {
-    document.getElementById('clear-step3b-error').textContent = 'Wrong password. Only Suffu knows the way 🤫';
-    const inp = document.getElementById('clear-editor-pw');
-    inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400);
-  }
 }
