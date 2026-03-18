@@ -11,8 +11,8 @@ function drawDonut(canvasId, pct, color) {
   ctx.scale(dpr, dpr);
 
   ctx.clearRect(0, 0, w, h);
-  ctx.beginPath(); ctx.arc(r, r, r - 8, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 10; ctx.stroke();
-  ctx.beginPath(); ctx.arc(r, r, r - 8, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (pct / 100))); ctx.strokeStyle = color; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(r, r, r - 10, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 12; ctx.stroke();
+  ctx.beginPath(); ctx.arc(r, r, r - 10, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (pct / 100))); ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.stroke();
 }
 
 function renderMetrics() {
