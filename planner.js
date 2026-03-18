@@ -3,8 +3,20 @@
 // ============================================================
 function getOrCreatePlannerRow(date) {
   let row = data.planner.find(r => r.date === date);
-  if (!row) { row = { date, ticks: { accounts: false, law: false, maths: false, economics: false }, plans: { accounts: '', law: '', maths: '', economics: '' } }; data.planner.push(row); }
+  if (!row) {
+    // Return a temporary row object but don't push to data.planner yet
+    return { date, ticks: { accounts: false, law: false, maths: false, economics: false }, plans: { accounts: '', law: '', maths: '', economics: '' } };
+  }
   if (!row.plans) row.plans = { accounts: '', law: '', maths: '', economics: '' };
+  return row;
+}
+
+function ensureRowExists(date) {
+  let row = data.planner.find(r => r.date === date);
+  if (!row) {
+    row = { date, ticks: { accounts: false, law: false, maths: false, economics: false }, plans: { accounts: '', law: '', maths: '', economics: '' } };
+    data.planner.push(row);
+  }
   return row;
 }
 function getAllPlannerDates() {
@@ -63,17 +75,18 @@ function renderPlanner() {
           showToast('No plans to tick off! Suffu sees an empty schedule 📝', 'error');
           return;
         }
-        const allT = SUBJECTS.every(s => !row.plans[s] || row.plans[s].trim() === '' || row.ticks[s]);
+        const persistentRow = ensureRowExists(date);
+        const allT = SUBJECTS.every(s => !persistentRow.plans[s] || persistentRow.plans[s].trim() === '' || persistentRow.ticks[s]);
         SUBJECTS.forEach(s => {
-          if (row.plans[s] && row.plans[s].trim() !== '') {
-            row.ticks[s] = !allT;
+          if (persistentRow.plans[s] && persistentRow.plans[s].trim() !== '') {
+            persistentRow.ticks[s] = !allT;
           }
         });
         saveData();
         card.querySelectorAll('.pcard-tick').forEach((t, i) => {
           const s = SUBJECTS[i];
-          t.className = 'pcard-tick' + (row.ticks[s] ? ' ticked' : '');
-          t.textContent = row.ticks[s] ? '✓' : '';
+          t.className = 'pcard-tick' + (persistentRow.ticks[s] ? ' ticked' : '');
+          t.textContent = persistentRow.ticks[s] ? '✓' : '';
         });
         if (currentSection === 'metrics') renderMetrics();
       });
@@ -91,10 +104,10 @@ function renderPlanner() {
         const inp = document.createElement('input');
         inp.type = 'text'; inp.className = 'pcard-plan-input';
         inp.value = row.plans[subj] || ''; inp.placeholder = 'Plan…';
-        inp.addEventListener('change', () => { row.plans[subj] = inp.value; saveData(); });
-        inp.addEventListener('blur', () => { row.plans[subj] = inp.value; saveData(); });
+        inp.addEventListener('change', () => { const r = ensureRowExists(date); r.plans[subj] = inp.value.trim(); saveData(); });
+        inp.addEventListener('blur', () => { const r = ensureRowExists(date); r.plans[subj] = inp.value.trim(); saveData(); });
         inp.addEventListener('keydown', e => {
-          if (e.key === 'Enter') { row.plans[subj] = inp.value; saveData(); inp.blur(); }
+          if (e.key === 'Enter') { const r = ensureRowExists(date); r.plans[subj] = inp.value.trim(); saveData(); inp.blur(); }
         });
 
         const tick = document.createElement('button');
@@ -105,9 +118,10 @@ function renderPlanner() {
             showToast('Plan something first! Don\'t tick into the void 📅', 'error');
             return;
           }
-          row.ticks[subj] = !row.ticks[subj]; saveData();
-          tick.className = 'pcard-tick' + (row.ticks[subj] ? ' ticked' : '');
-          tick.textContent = row.ticks[subj] ? '✓' : '';
+          const r = ensureRowExists(date);
+          r.ticks[subj] = !r.ticks[subj]; saveData();
+          tick.className = 'pcard-tick' + (r.ticks[subj] ? ' ticked' : '');
+          tick.textContent = r.ticks[subj] ? '✓' : '';
           if (currentSection === 'metrics') renderMetrics();
         });
 
