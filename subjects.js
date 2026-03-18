@@ -89,7 +89,7 @@ function renderSubjectsInternal() {
     bodyEl.appendChild(chapterList);
     if (editorUnlocked) {
       var ab = document.createElement('button'); ab.className = 'subject-add-btn'; ab.textContent = '+ Add Chapter';
-      (function (subj) { ab.addEventListener('click', function () { openSubjects.add(subj.id); subj.chapters.push({ id: 'ch' + Date.now(), name: 'New Chapter', difficulty: 3, confidence: 3 }); saveData(); renderSubjectsInternal(); }); })(subj);
+      (function (subj) { ab.addEventListener('click', function () { openSubjects.add(subj.id); subj.chapters.push({ id: generateId('ch'), name: 'New Chapter', difficulty: 3, confidence: 3 }); saveData(); renderSubjectsInternal(); }); })(subj);
       bodyEl.appendChild(ab);
     }
     block.append(header, bodyEl); body.appendChild(block);
