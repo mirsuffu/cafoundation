@@ -65,7 +65,7 @@ function applyTheme(theme) {
 }
 function toggleTheme() { const t = data.settings.theme === 'dark' ? 'light' : 'dark'; applyTheme(t); saveData(); }
 
-function setEditorMode(unlocked) {
+function setEditorMode(unlocked, options = { showFeedback: false, reRenders: true }) {
   editorUnlocked = unlocked;
   const badge = document.getElementById('editor-badge');
   const btn = document.getElementById('editor-toggle-btn-settings');
@@ -73,16 +73,19 @@ function setEditorMode(unlocked) {
     if (badge) { badge.className = 'unlocked'; badge.textContent = '🔓 UNLOCKED'; }
     if (btn) btn.textContent = '🔓 Unlock Editor';
     document.body.classList.remove('editor-locked');
-    showToast('Editor Mode Unlocked! Suffu is watching... 👀', 'success');
+    if (options.showFeedback) showToast('Editor Mode Unlocked! Suffu is watching... 👀', 'success');
   } else {
     if (badge) { badge.className = 'locked'; badge.textContent = '🔒 LOCKED'; }
     if (btn) btn.textContent = '🔒 Unlock Editor';
     document.body.classList.add('editor-locked');
-    showToast('Editor Mode Locked. Back to focus! 🔒', 'info');
+    if (options.showFeedback) showToast('Editor Mode Locked. Back to focus! 🔒', 'info');
   }
-  renderSchedule(); renderSubjectsInternal();
+  if (options.reRenders) {
+    renderSchedule();
+    renderSubjectsInternal();
+  }
 }
-function handleEditorToggle() { editorUnlocked ? setEditorMode(false) : openEditorModal(); }
+function handleEditorToggle() { editorUnlocked ? setEditorMode(false, { showFeedback: true, reRenders: true }) : openEditorModal(); }
 function openEditorModal() {
   playSound('pop');
   document.getElementById('editor-modal').classList.add('show');
@@ -93,7 +96,7 @@ function openEditorModal() {
 function closeEditorModal() { document.getElementById('editor-modal').classList.remove('show'); }
 function confirmEditorPassword() {
   const pw = document.getElementById('editor-pw-input').value;
-  if (pw === EDITOR_PASSWORD) { closeEditorModal(); setEditorMode(true); }
+  if (pw === EDITOR_PASSWORD) { closeEditorModal(); setEditorMode(true, { showFeedback: true, reRenders: true }); }
   else {
     const inp = document.getElementById('editor-pw-input');
     document.getElementById('editor-pw-error').textContent = 'Nice try. Wrong password though 🙃';
