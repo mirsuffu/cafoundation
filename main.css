@@ -542,41 +542,49 @@ body.editor-locked .plan-input:hover { border-color: transparent; background: tr
 /* ============================================================
    METRICS
    ============================================================ */
-#metrics-section .section-body { padding: 14px 18px; flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; overflow: hidden; }
-.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; overflow: hidden; }
-.metric-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
-#donut-wrap { display: flex; align-items: center; gap: 16px; flex: 1; }
+#metrics-section .section-body { padding: 14px 18px; flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 14px; overflow-y: auto; }
+@media (max-width: 768px) {
+  #metrics-section .section-body { grid-template-columns: 1fr; grid-template-rows: none; }
+}
+
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; overflow: hidden; min-height: 200px; }
+.metric-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+#donut-wrap { display: flex; align-items: center; justify-content: center; gap: 20px; flex: 1; padding: 10px 0; }
 #donut-canvas { flex-shrink: 0; }
 #donut-info { display: flex; flex-direction: column; gap: 4px; }
-#donut-pct { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
-#donut-label { font-size: 12px; color: var(--text2); }
-#donut-ticks { font-size: 12px; color: var(--text2); margin-top: 4px; }
-.subj-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.subj-bar-label { font-size: 12px; font-weight: 600; width: 75px; color: var(--text2); }
-.subj-bar-track { flex: 1; height: 7px; background: var(--surface-el); border-radius: 4px; overflow: hidden; }
-.subj-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
-.subj-bar-pct { font-size: 11px; font-family: var(--mono); color: var(--text2); width: 34px; text-align: right; }
-.conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; }
-.conf-item { background: var(--surface-el); border-radius: 8px; padding: 9px; }
-.conf-item-name { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-.conf-item-body { display: flex; flex-direction: column; gap: 3px; }
-.conf-mini-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-.conf-mini-label { color: var(--text2); width: 55px; }
-.conf-mini-stars { display: flex; gap: 1px; }
-.conf-mini-star { font-size: 11px; color: var(--warning); opacity: 0.25; }
-.conf-mini-star.on { opacity: 1; }
-.flag-count { font-size: 11px; color: var(--danger); margin-top: 4px; }
-.streak-big { font-size: 36px; font-weight: 700; letter-spacing: -2px; color: var(--warning); }
-.streak-unit { font-size: 12px; color: var(--text2); margin-top: -2px; }
-.streak-longest { font-size: 12px; color: var(--text2); margin-top: 8px; }
-.streak-longest span { color: var(--text); font-weight: 600; }
-.days-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; }
-.stat-pill { background: var(--surface-el); border-radius: 8px; padding: 9px; text-align: center; }
-.stat-pill-num { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-.stat-pill-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
-.stat-pill-num.accent { color: var(--accent); }
-.stat-pill-num.success { color: var(--success); }
-.stat-pill-num.danger { color: var(--danger); }
+#donut-pct { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--accent); }
+#donut-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+#donut-ticks { font-size: 11px; color: var(--text2); opacity: 0.8; }
+
+.subj-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.subj-bar-label { font-size: 12px; font-weight: 600; width: 85px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
+.subj-bar-track { flex: 1; height: 8px; background: var(--surface-el); border-radius: 4px; overflow: hidden; position: relative; }
+.subj-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.conf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; }
+.conf-item { background: var(--surface-el); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; border: 1px solid transparent; transition: all 0.2s; }
+.conf-item:hover { border-color: var(--border); background: var(---surface); }
+.conf-subj { font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.conf-vals { display: flex; flex-direction: column; gap: 4px; }
+.conf-val-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); font-weight: 500; }
+.conf-val-num { color: var(--text); font-weight: 700; font-family: var(--mono); }
+
+.chart-tooltip {
+  position: absolute; display: none; pointer-events: none;
+  background: var(--surface-el); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 8px; font-size: 11px;
+  box-shadow: 0 4px 12px var(--shadow); z-index: 1000;
+  color: var(--text); transform: translate(-50%, -100%); margin-top: -10px;
+}
+.chart-tooltip b { color: var(--accent); }
+
+@media (max-width: 480px) {
+  .conf-grid { grid-template-columns: 1fr; }
+}
+
+/* Study streak & days vs chapters styles removed */
+
 
 
 
