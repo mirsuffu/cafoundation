@@ -1,17 +1,6 @@
 // ============================================================
 // METRICS & CHARTS
 // ============================================================
-function calcStreak() {
-  const dates = getAllPlannerDates(), today = getTodayStr();
-  let streak = 0;
-  for (let i = dates.length - 1; i >= 0; i--) {
-    const d = dates[i]; if (d > today) continue;
-    const r = data.planner.find(x => x.date === d);
-    if (r && SUBJECTS.some(s => r.ticks[s])) streak++;
-    else if (d < today) break;
-  }
-  return streak;
-}
 
 function drawDonut(canvasId, pct, color) {
   const canvas = document.getElementById(canvasId); if (!canvas) return;
@@ -24,7 +13,6 @@ function drawDonut(canvasId, pct, color) {
   ctx.clearRect(0, 0, w, h);
   ctx.beginPath(); ctx.arc(r, r, r - 8, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 10; ctx.stroke();
   ctx.beginPath(); ctx.arc(r, r, r - 8, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (pct / 100))); ctx.strokeStyle = color; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.stroke();
-  ctx.font = 'bold 16px var(--font)'; ctx.fillStyle = 'var(--text)'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(Math.round(pct) + '%', r, r);
 }
 
 function renderMetrics() {
@@ -38,9 +26,12 @@ function renderMetrics() {
   });
 
   const overallPct = totalTasks ? (doneTasks / totalTasks) * 100 : 0;
-  drawDonut('overall-donut', overallPct, 'var(--accent)');
+  drawDonut('donut-canvas', overallPct, 'var(--accent)');
   
-  const compLabel = document.getElementById('overall-completed-label');
+  const pctEl = document.getElementById('donut-pct');
+  if (pctEl) pctEl.textContent = Math.round(overallPct) + '%';
+  
+  const compLabel = document.getElementById('donut-ticks');
   if (compLabel) compLabel.textContent = doneTasks + ' / ' + totalTasks + ' ticks';
 
   // 1. Subject Bars
@@ -67,74 +58,116 @@ function renderMetrics() {
     confGrid.innerHTML = '';
     SUBJECTS.forEach(s => {
       const subjData = data.subjects.find(x => x.id === s);
-      if (!subjData || !subjData.chapters.length) return;
-      const avgDiff = (subjData.chapters.reduce((a, c) => a + c.difficulty, 0) / subjData.chapters.length).toFixed(1);
-      const avgConf = (subjData.chapters.reduce((a, c) => a + c.confidence, 0) / subjData.chapters.length).toFixed(1);
+      if (!subjData) return;
+      const totalCh = subjData.chapters.length;
+      const avgDiff = totalCh ? (subjData.chapters.reduce((a, c) => a + c.difficulty, 0) / totalCh).toFixed(1) : '0.0';
+      const avgConf = totalCh ? (subjData.chapters.reduce((a, c) => a + c.confidence, 0) / totalCh).toFixed(1) : '0.0';
+      
       const item = document.createElement('div'); item.className = 'conf-item';
       item.innerHTML = `<div class="conf-subj" style="color:${SUBJECT_COLORS[s]}">${SUBJECT_LABELS[s]}</div>`
-                     + `<div class="conf-vals"><span>Diff: ${avgDiff}</span><span>Conf: ${avgConf}</span></div>`;
+                     + `<div class="conf-vals">`
+                     + `<div class="conf-val-row"><span>Difficulty</span><span class="conf-val-num">${avgDiff}</span></div>`
+                     + `<div class="conf-val-row"><span>Confidence</span><span class="conf-val-num">${avgConf}</span></div>`
+                     + `</div>`;
       confGrid.appendChild(item);
     });
   }
 
-  // 3. Streak
-  const streakNum = document.getElementById('streak-num');
-  if (streakNum) streakNum.textContent = calcStreak();
-  
-  // 4. Days vs Chapters
-  const daysStats = document.getElementById('days-stats');
-  if (daysStats) {
-    daysStats.innerHTML = '';
-    const daysLeft = daysUntil(data.settings.examDate);
-    SUBJECTS.forEach(s => {
-      const subjData = data.subjects.find(x => x.id === s);
-      const totalCh = subjData ? subjData.chapters.length : 0;
-      const item = document.createElement('div'); item.className = 'days-stat-item';
-      item.innerHTML = `<div class="ds-subj">${SUBJECT_LABELS[s]}</div>`
-                     + `<div class="ds-val">${totalCh} <small>Chapters</small></div>`
-                     + `<div class="ds-sub">${daysLeft > 0 ? (totalCh / daysLeft).toFixed(1) : '—'} ch/day</div>`;
-      daysStats.appendChild(item);
-    });
-  }
-
-  // 5. Score Trend Chart
+  // 3. Score Trend Chart
   renderScoreTrend();
 }
+
+let scoreTrendPoints = [];
 
 function renderScoreTrend() {
   const canvas = document.getElementById('score-trend-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const container = document.getElementById('score-trend-container');
+  const w = container.clientWidth, h = container.clientHeight;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
   ctx.scale(dpr, dpr);
 
   ctx.clearRect(0, 0, w, h);
-  if (!data.tests || data.tests.length < 2) {
+  scoreTrendPoints = [];
+
+  const validTests = (data.tests || []).filter(t => t.score && t.score.includes('/')).sort((a,b) => a.date.localeCompare(b.date)).slice(-12);
+
+  if (validTests.length < 2) {
     ctx.fillStyle = 'var(--text2)'; ctx.font = '12px var(--font)'; ctx.textAlign = 'center';
     ctx.fillText('Log at least 2 tests to see trend', w/2, h/2);
     return;
   }
 
-  const scores = data.tests.filter(t => t.score && t.score.includes('/')).map(t => {
+  const scores = validTests.map(t => {
     const parts = t.score.split('/');
-    return (parseFloat(parts[0]) / parseFloat(parts[1])) * 100;
-  }).slice(-10);
+    const pct = (parseFloat(parts[0]) / parseFloat(parts[1])) * 100;
+    return { pct, date: t.date, score: t.score, subj: t.subject };
+  });
 
-  if (scores.length < 2) return;
-
-  ctx.beginPath(); ctx.strokeStyle = 'var(--accent)'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
   const step = w / (scores.length - 1);
+  const padding = 20;
+  const drawH = h - (padding * 2);
+
+  // Draw line
+  ctx.beginPath(); ctx.strokeStyle = 'var(--accent)'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   scores.forEach((s, i) => {
     const x = i * step;
-    const y = h - (s / 100) * (h - 20) - 10;
+    const y = h - padding - (s.pct / 100) * drawH;
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    scoreTrendPoints.push({ x, y, ...s });
   });
   ctx.stroke();
 
   // Gradient area
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, 'rgba(124, 111, 205, 0.2)'); grad.addColorStop(1, 'transparent');
+  const grad = ctx.createLinearGradient(0, padding, 0, h);
+  grad.addColorStop(0, 'rgba(124, 111, 205, 0.15)'); grad.addColorStop(1, 'transparent');
   ctx.lineTo((scores.length-1)*step, h); ctx.lineTo(0, h); ctx.fillStyle = grad; ctx.fill();
+
+  // Draw dots
+  scoreTrendPoints.forEach(p => {
+    ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'var(--surface)'; ctx.fill();
+    ctx.strokeStyle = 'var(--accent)'; ctx.lineWidth = 2; ctx.stroke();
+  });
+
+  // Setup Interactivity
+  const tooltip = document.getElementById('score-tooltip');
+  let lastClosest = null;
+  const handleMove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const mx = clientX - rect.left;
+    const my = clientY - rect.top;
+    
+    let closest = null, minDist = 25;
+    scoreTrendPoints.forEach(p => {
+      const d = Math.sqrt((p.x - mx)**2 + (p.y - my)**2);
+      if (d < minDist) { minDist = d; closest = p; }
+    });
+
+    if (closest) {
+      if (lastClosest !== closest) {
+        playSound('click');
+        lastClosest = closest;
+      }
+      tooltip.style.display = 'block';
+      tooltip.style.left = closest.x + 'px';
+      tooltip.style.top = closest.y + 'px';
+      const sub = closest.subj === 'all' ? 'All Subjects' : (SUBJECT_LABELS[closest.subj] || closest.subj);
+      tooltip.innerHTML = `<div><b>${closest.pct.toFixed(1)}%</b></div>`
+                        + `<div style="font-size:10px;margin-top:2px;">${sub}</div>`
+                        + `<div style="font-size:10px;color:var(--text2)">${formatDateShort(closest.date)} • ${closest.score}</div>`;
+    } else {
+      tooltip.style.display = 'none';
+      lastClosest = null;
+    }
+  };
+
+  container.onmousemove = handleMove;
+  container.ontouchstart = (e) => { handleMove(e); };
+  container.onmouseleave = () => { tooltip.style.display = 'none'; lastClosest = null; };
 }
