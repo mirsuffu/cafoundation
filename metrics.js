@@ -4,13 +4,16 @@
 
 function drawDonut(canvasId, pct, color) {
   const canvas = document.getElementById(canvasId); if (!canvas) return;
-  const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height, r = w / 2;
+  const ctx = canvas.getContext('2d');
+  const size = 100; // Fixed internal size to prevent scaling bugs
+  const r = size / 2;
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = w * dpr; canvas.height = h * dpr;
-  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  
+  canvas.width = size * dpr; canvas.height = size * dpr;
+  canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
   ctx.scale(dpr, dpr);
 
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, size, size);
   ctx.beginPath(); ctx.arc(r, r, r - 10, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 12; ctx.stroke();
   ctx.beginPath(); ctx.arc(r, r, r - 10, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (pct / 100))); ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.stroke();
 }
