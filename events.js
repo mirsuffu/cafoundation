@@ -181,10 +181,4 @@ function setupLoginEvents() {
 
 function setupMobileTabs() {
   document.querySelectorAll('.mobile-tab').forEach(t => t.addEventListener('click', () => switchSection(t.dataset.section)));
-  (function () {
-    var hbtn = document.getElementById('hamburger-btn'), hmenu = document.getElementById('mobile-topbar-menu');
-    if (!hbtn || !hmenu) return;
-    hbtn.addEventListener('click', function (e) { e.stopPropagation(); hmenu.classList.toggle('open'); });
-    document.addEventListener('click', function (e) { if (!hmenu.contains(e.target) && e.target !== hbtn) hmenu.classList.remove('open'); });
-  })();
 }
