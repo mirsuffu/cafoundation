@@ -39,6 +39,10 @@ function daysUntil(s) { const t=new Date();t.setHours(0,0,0,0); return Math.ceil
 function isSunday(s) { return parseDate(s).getDay()===0; }
 function getTodayStr() { return toDateStr(new Date()); }
 
+function generateId(prefix = '') {
+  return prefix + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+}
+
 function showToast(msg, type = 'info') {
   playSound('pop');
   const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg;
