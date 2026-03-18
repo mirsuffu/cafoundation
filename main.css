@@ -230,9 +230,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 
   /* Bottom tab bar */
   #mobile-tabs {
-    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 5000;
     background: var(--surface); border-top: 1px solid var(--border);
-    height: 58px; box-shadow: 0 -4px 16px var(--shadow);
+    height: 62px; box-shadow: 0 -4px 16px var(--shadow);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   .mobile-tab {
     flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -246,20 +247,20 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
   .mobile-tab.active .tab-icon { filter: drop-shadow(0 0 4px var(--accent)); }
 
   /* Main content gets bottom padding for tab bar */
-  #main { padding-bottom: 58px; }
-  #content { overflow-y: auto; }
+  #main { padding-bottom: 62px; position: relative; z-index: 1; }
+  #content { overflow-y: auto; height: 100%; }
 
   /* Topbar - compact */
-  #topbar { padding: 6px 12px; gap: 8px; min-height: 52px; height: auto; align-items: center; flex-wrap: nowrap; }
-  #topbar-brand .brand-tag { display: block; font-size: 8px; white-space: normal; line-height: 1.35; opacity: 0.85; }
+  #topbar { padding: 6px 12px; gap: 8px; min-height: 56px; height: auto; align-items: center; flex-wrap: nowrap; z-index: 6000; position: relative; box-shadow: 0 2px 10px var(--shadow); }
+  #topbar-brand .brand-tag { display: block; font-size: 8px; white-space: normal; line-height: 1.35; opacity: 0.85; max-width: 160px; }
   #topbar-brand .brand-name { font-size: 12px; }
-  #topbar-center { flex: 0 0 auto; }
+  #topbar-center { flex: 1; text-align: center; }
   #days-remaining { font-size: 14px; }
   #topbar-date { display: block; font-size: 9px; }
-  #topbar-actions { gap: 4px; }
-  #conn-status { display: none; }
-  #fullscreen-btn, #theme-toggle-btn, #editor-toggle-btn { display: none !important; }
-  #hamburger-btn { display: flex !important; }
+  #topbar-actions { display: flex !important; align-items: center; justify-content: flex-end; min-width: 70px; }
+  #conn-status { display: flex !important; padding: 3px 8px; font-size: 10px; background: var(--surface-el); }
+  #conn-dot { width: 6px; height: 6px; }
+  #fullscreen-btn, #theme-toggle-btn, #editor-toggle-btn, #hamburger-btn { display: none !important; }
   .icon-btn { width: 32px; height: 32px; font-size: 14px; }
 
   /* Planner - card layout on mobile */
