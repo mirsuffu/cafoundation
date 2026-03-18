@@ -1,0 +1,104 @@
+// ============================================================
+// SUBJECTS & CHAPTERS RENDER
+// ============================================================
+function getPriorityFlag(d, c) {
+  if (d >= 4 && c <= 2) return '<span style="color:var(--danger)" title="High Priority">⚑</span>';
+  if (d >= 3 && c <= 2) return '<span style="color:var(--warning)" title="Medium Priority">⚑</span>';
+  return '';
+}
+
+function makeStarGroup(container, initVal, onChangeFn) {
+  container.innerHTML = '';
+  let live = initVal;
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement('span');
+    s.className = 'star' + (i <= initVal ? ' filled' : ''); s.textContent = '★';
+    s.addEventListener('mouseenter', () => container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < i)));
+    s.addEventListener('mouseleave', () => container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < live)));
+    s.addEventListener('click', () => { live = i; container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < i)); onChangeFn(i); });
+    container.appendChild(s);
+  }
+}
+
+function renderSubjectsInternal() {
+  var body = document.getElementById('subjects-body'); if (!body) return;
+  body.innerHTML = '';
+  var mobile = isMobile();
+  data.subjects.forEach(function (subj) {
+    var isOpen = openSubjects.has(subj.id);
+    var block = document.createElement('div');
+    block.className = 'subject-block' + (isOpen ? ' open' : '');
+    block.dataset.subjid = subj.id;
+    var avgConf = subj.chapters.length ? (subj.chapters.reduce(function (a, c) { return a + c.confidence; }, 0) / subj.chapters.length).toFixed(1) : '—';
+    var flags = subj.chapters.filter(function (c) { return c.difficulty >= 3 && c.confidence <= 2; }).length;
+    var header = document.createElement('div'); header.className = 'subject-header';
+    header.innerHTML = '<span class="subject-name">' + subj.name + '</span>'
+      + '<div class="subject-meta"><span>📖 ' + subj.chapters.length + ' chapters</span>'
+      + '<span>⭐ Avg Conf: ' + avgConf + '</span>'
+      + (flags ? '<span style="color:var(--warning)">⚑ ' + flags + ' flagged</span>' : '') + '</div>'
+      + '<span class="subject-chevron">▶</span>';
+    header.addEventListener('click', function () { var n = block.classList.toggle('open'); if (n) openSubjects.add(subj.id); else openSubjects.delete(subj.id); });
+    var bodyEl = document.createElement('div'); bodyEl.className = 'subject-body';
+    var chapterList = document.createElement('div'); chapterList.className = 'chapter-list';
+    if (subj.chapters.length === 0 && !editorUnlocked) { chapterList.innerHTML = '<div class="empty-chapters">No chapters yet. Unlock Editor Mode to add chapters.</div>'; }
+    subj.chapters.forEach(function (ch, ci) {
+      var row = document.createElement('div'); row.className = 'chapter-row';
+      if (editorUnlocked) {
+        var inp = document.createElement('input'); inp.type = 'text'; inp.className = 'chapter-name-input'; inp.value = ch.name;
+        inp.addEventListener('change', function () { ch.name = inp.value; saveData(); });
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { ch.name = inp.value; saveData(); inp.blur(); } });
+        row.appendChild(inp);
+      } else {
+        var nm = document.createElement('span'); nm.className = 'chapter-name'; nm.textContent = ch.name; row.appendChild(nm);
+      }
+      var flag = document.createElement('span'); flag.className = 'priority-flag'; flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence);
+      var dl = document.createElement('span'); dl.className = 'rating-label'; dl.textContent = 'Difficulty';
+      var ds = document.createElement('span'); ds.className = 'star-group';
+      (function (ch, flag) { makeStarGroup(ds, ch.difficulty, function (v) { ch.difficulty = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      var cl = document.createElement('span'); cl.className = 'rating-label'; cl.textContent = 'Confidence';
+      var cs = document.createElement('span'); cs.className = 'star-group';
+      (function (ch, flag) { makeStarGroup(cs, ch.confidence, function (v) { ch.confidence = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      if (mobile) {
+        var rrow = document.createElement('div'); rrow.className = 'chapter-ratings-mobile';
+        rrow.append(dl, ds, cl, cs, flag);
+        if (editorUnlocked) {
+          var del = document.createElement('span'); del.className = 'chapter-del'; del.textContent = '✕'; del.title = 'Delete';
+          (function (ci) { del.addEventListener('click', function () { subj.chapters.splice(ci, 1); saveData(); renderSubjectsInternal(); }); })(ci);
+          var up = document.createElement('span'); up.className = 'chapter-move'; up.textContent = '▲'; up.style.cssText = 'cursor:pointer;font-size:10px;color:var(--text2);padding:0 2px;';
+          (function (ci) { up.addEventListener('click', function () { if (ci > 0) { var t = subj.chapters[ci - 1]; subj.chapters[ci - 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
+          var dn = document.createElement('span'); dn.className = 'chapter-move'; dn.textContent = '▼'; dn.style.cssText = 'cursor:pointer;font-size:10px;color:var(--text2);padding:0 2px;';
+          (function (ci) { dn.addEventListener('click', function () { if (ci < subj.chapters.length - 1) { var t = subj.chapters[ci + 1]; subj.chapters[ci + 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
+          rrow.append(up, dn, del);
+        }
+        row.appendChild(rrow);
+      } else {
+        cl.style.marginLeft = '10px';
+        row.append(flag, dl, ds, cl, cs);
+        if (editorUnlocked) {
+          var del = document.createElement('span'); del.className = 'chapter-del'; del.textContent = '✕'; del.title = 'Delete';
+          (function (ci) { del.addEventListener('click', function () { subj.chapters.splice(ci, 1); saveData(); renderSubjectsInternal(); }); })(ci);
+          var up = document.createElement('span'); up.className = 'chapter-move'; up.textContent = '▲'; up.style.cssText = 'cursor:pointer;font-size:10px;color:var(--text2);padding:0 2px;';
+          (function (ci) { up.addEventListener('click', function () { if (ci > 0) { var t = subj.chapters[ci - 1]; subj.chapters[ci - 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
+          var dn = document.createElement('span'); dn.className = 'chapter-move'; dn.textContent = '▼'; dn.style.cssText = 'cursor:pointer;font-size:10px;color:var(--text2);padding:0 2px;';
+          (function (ci) { dn.addEventListener('click', function () { if (ci < subj.chapters.length - 1) { var t = subj.chapters[ci + 1]; subj.chapters[ci + 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
+          row.append(up, dn, del);
+        }
+      }
+      chapterList.appendChild(row);
+    });
+    bodyEl.appendChild(chapterList);
+    if (editorUnlocked) {
+      var ab = document.createElement('button'); ab.className = 'subject-add-btn'; ab.textContent = '+ Add Chapter';
+      (function (subj) { ab.addEventListener('click', function () { openSubjects.add(subj.id); subj.chapters.push({ id: 'ch' + Date.now(), name: 'New Chapter', difficulty: 3, confidence: 3 }); saveData(); renderSubjectsInternal(); }); })(subj);
+      bodyEl.appendChild(ab);
+    }
+    block.append(header, bodyEl); body.appendChild(block);
+  });
+}
+
+function refreshSubjectMeta(subj, header) {
+  const avgConf = subj.chapters.length ? (subj.chapters.reduce((a, c) => a + c.confidence, 0) / subj.chapters.length).toFixed(1) : '—';
+  const flags = subj.chapters.filter(c => c.difficulty >= 3 && c.confidence <= 2).length;
+  const meta = header.querySelector('.subject-meta');
+  if (meta) meta.innerHTML = `<span>📖 ${subj.chapters.length} chapters</span><span>⭐ Avg Conf: ${avgConf}</span>${flags ? `<span style="color:var(--warning)">⚑ ${flags} flagged</span>` : ''}`;
+}
