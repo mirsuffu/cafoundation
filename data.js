@@ -14,16 +14,20 @@ function defaultData() {
     subjects: SUBJECTS.map(id => ({ id, name: SUBJECT_LABELS[id], chapters: [] })),
     planner: [],
     tests: [],
-    schedules: { allDaysExceptSundays: { slots: [] }, sundays: { slots: [] }, periodCycleDays: { slots: [] } }
+    schedules: { allDaysExceptSundays: { slots: [] }, sundays: { slots: [] }, periodCycleDays: { slots: [] } },
+    lastModified: Date.now()
   };
 }
 
 async function loadData() {
+  let localData = null;
   try {
     const raw = localStorage.getItem(getStorageKey());
-    data = raw ? JSON.parse(raw) : defaultData();
-    normalizeData();
-  } catch (e) { data = defaultData(); }
+    localData = raw ? JSON.parse(raw) : defaultData();
+  } catch (e) { localData = defaultData(); }
+
+  data = localData; // Start with local
+  normalizeData();
 
   if (window._fbDb && window._doc && window._getDoc && currentUser) {
     try {
@@ -31,9 +35,9 @@ async function loadData() {
       const ref = window._doc(window._fbDb, 'users', currentUser.uid, 'data', 'appdata');
       const snap = await window._getDoc(ref);
       if (snap.exists()) {
-        const cloud = snap.data().appdata;
-        if (cloud) {
-          data = JSON.parse(cloud);
+        const cloudData = JSON.parse(snap.data().appdata);
+        if (cloudData && (!data.lastModified || cloudData.lastModified > data.lastModified)) {
+          data = cloudData;
           normalizeData();
           localStorage.setItem(getStorageKey(), JSON.stringify(data));
         }
@@ -63,11 +67,13 @@ function normalizeData() {
   if (!data.planner) data.planner = [];
   if (!data.tests) data.tests = [];
   if (!data.schedules) data.schedules = def.schedules;
+  if (!data.lastModified) data.lastModified = Date.now();
   SCHED_KEYS.forEach(k => { if (!data.schedules[k]) data.schedules[k] = { slots: [] }; });
 }
 
 var _saveTimer = null;
 function saveData() {
+  data.lastModified = Date.now();
   localStorage.setItem(getStorageKey(), JSON.stringify(data));
   if (window._fbDb && window._doc && window._setDoc && currentUser) {
     setConnStatus('syncing');
