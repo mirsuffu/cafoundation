@@ -33,44 +33,83 @@ function setupEvents() {
   document.getElementById('editor-pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmEditorPassword(); if (e.key === 'Escape') closeEditorModal(); });
   document.getElementById('editor-modal').addEventListener('click', e => { if (e.target === document.getElementById('editor-modal')) closeEditorModal(); });
   document.addEventListener('keydown', e => { if (e.ctrlKey && e.shiftKey && e.key === 'E') { e.preventDefault(); handleEditorToggle(); } });
-  document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
-  document.getElementById('scroll-today-btn').addEventListener('click', scrollToToday);
+  const saveSettingsBtn = document.getElementById('save-settings-btn');
+  if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveSettings);
+  
+  const scrollTodayBtn = document.getElementById('scroll-today-btn');
+  if (scrollTodayBtn) scrollTodayBtn.addEventListener('click', scrollToToday);
 
-  document.getElementById('save-name-btn').addEventListener('click', () => {
-    const n = document.getElementById('setting-user-name').value.trim();
-    if (n) { data.settings.userName = n; saveData(); updateTopBar(); showToast('Name saved! Welcome to the grind, ' + n + ' ✨', 'success'); }
-    else showToast('Suffu needs to know what to call you! 🤨', 'error');
-  });
+  const saveNameBtn = document.getElementById('save-name-btn');
+  if (saveNameBtn) {
+    saveNameBtn.addEventListener('click', () => {
+      const n = document.getElementById('setting-user-name').value.trim();
+      if (n) { data.settings.userName = n; saveData(); updateTopBar(); showToast('Name saved! Welcome to the grind, ' + n + ' ✨', 'success'); }
+      else showToast('Suffu needs to know what to call you! 🤨', 'error');
+    });
+  }
 
-  document.getElementById('export-btn').addEventListener('click', exportData);
-  document.getElementById('import-input').addEventListener('change', handleImportFile);
-  document.getElementById('import-cancel-btn').addEventListener('click', () => { pendingImportFile = null; document.getElementById('import-modal').classList.remove('show'); });
-  document.getElementById('import-confirm-btn').addEventListener('click', confirmImport);
+  const exportBtn = document.getElementById('export-btn');
+  if (exportBtn) exportBtn.addEventListener('click', exportData);
 
-  document.getElementById('clear-data-btn').addEventListener('click', openClearModal);
+  const importInput = document.getElementById('import-input');
+  if (importInput) importInput.addEventListener('change', handleImportFile);
+
+  const importCancelBtn = document.getElementById('import-cancel-btn');
+  if (importCancelBtn) importCancelBtn.addEventListener('click', () => { pendingImportFile = null; document.getElementById('import-modal').classList.remove('show'); });
+
+  const importConfirmBtn = document.getElementById('import-confirm-btn');
+  if (importConfirmBtn) importConfirmBtn.addEventListener('click', confirmImport);
+
+  const clearDataBtn = document.getElementById('clear-data-btn');
+  if (clearDataBtn) clearDataBtn.addEventListener('click', openClearModal);
+  
   setupClearDataEvents();
 
-  document.getElementById('add-test-btn').addEventListener('click', openTestModal);
-  document.getElementById('test-cancel-btn').addEventListener('click', closeTestModal);
-  document.getElementById('test-save-btn').addEventListener('click', saveTestRecord);
+  const addTestBtn = document.getElementById('add-test-btn');
+  if (addTestBtn) addTestBtn.addEventListener('click', openTestModal);
+
+  const testCancelBtn = document.getElementById('test-cancel-btn');
+  if (testCancelBtn) testCancelBtn.addEventListener('click', closeTestModal);
+
+  const testSaveBtn = document.getElementById('test-save-btn');
+  if (testSaveBtn) testSaveBtn.addEventListener('click', saveTestRecord);
+
   document.querySelectorAll('#tf-confidence-stars .star-pick').forEach(s => s.addEventListener('click', () => updateTestStars(parseInt(s.dataset.val))));
 
-  document.getElementById('test-edit-cancel-btn').addEventListener('click', closeTestEditModal);
-  document.getElementById('test-edit-save-btn').addEventListener('click', saveTestEdit);
+  const testEditCancelBtn = document.getElementById('test-edit-cancel-btn');
+  if (testEditCancelBtn) testEditCancelBtn.addEventListener('click', closeTestEditModal);
+
+  const testEditSaveBtn = document.getElementById('test-edit-save-btn');
+  if (testEditSaveBtn) testEditSaveBtn.addEventListener('click', saveTestEdit);
+
   document.querySelectorAll('#te-confidence-stars .star-pick').forEach(s => s.addEventListener('click', () => updateTestEditStars(parseInt(s.dataset.val))));
 
-  document.getElementById('test-filter-subj').addEventListener('change', renderTestTable);
-  document.getElementById('test-filter-type').addEventListener('change', renderTestTable);
+  const testFilterSubj = document.getElementById('test-filter-subj');
+  if (testFilterSubj) testFilterSubj.addEventListener('change', renderTestTable);
 
-  document.getElementById('logout-btn').addEventListener('click', openLogoutModal);
-  document.getElementById('logout-cancel-btn').addEventListener('click', closeLogoutModal);
-  document.getElementById('logout-confirm-btn').addEventListener('click', confirmLogout);
+  const testFilterType = document.getElementById('test-filter-type');
+  if (testFilterType) testFilterType.addEventListener('change', renderTestTable);
 
-  document.getElementById('name-save-btn').addEventListener('click', () => {
-    const v = document.getElementById('name-input').value.trim();
-    if (v) { data.settings.userName = v; saveData(); document.getElementById('name-modal').classList.remove('show'); updateTopBar(); checkAndShowWelcome(); }
-    else { const i = document.getElementById('name-input'); i.classList.add('shake'); setTimeout(() => i.classList.remove('shake'), 400); }
-  });
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', openLogoutModal);
+
+  const logoutCancelBtn = document.getElementById('logout-cancel-btn');
+  if (logoutCancelBtn) logoutCancelBtn.addEventListener('click', closeLogoutModal);
+
+  const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
+  if (logoutConfirmBtn) logoutConfirmBtn.addEventListener('click', confirmLogout);
+
+  const nameSaveBtn = document.getElementById('name-save-btn');
+  if (nameSaveBtn) {
+    nameSaveBtn.addEventListener('click', () => {
+      const v = document.getElementById('name-input').value.trim();
+      if (v) { data.settings.userName = v; saveData(); document.getElementById('name-modal').classList.remove('show'); updateTopBar(); checkAndShowWelcome(); }
+      else { const i = document.getElementById('name-input'); i.classList.add('shake'); setTimeout(() => i.classList.remove('shake'), 400); }
+    });
+  }
+
+  const diveBtn = document.getElementById('welcome-dive-btn');
+  if (diveBtn) diveBtn.addEventListener('click', closeWelcome);
 
   setupLoginEvents();
   setupMobileTabs();
@@ -105,12 +144,15 @@ function setupClearDataEvents() {
 
   const next2 = document.getElementById('clear-next-2');
   if (next2) next2.addEventListener('click', () => {
-    if (document.getElementById('clear-confirm-text').value.toUpperCase() === 'DELETE') {
-      const scope = document.querySelector('input[name="clear-scope"]:checked').value;
+    const confirmInput = document.getElementById('clear-confirm-text');
+    if (confirmInput && confirmInput.value.toUpperCase() === 'DELETE') {
+      const scopeEl = document.querySelector('input[name="clear-scope"]:checked');
+      const scope = scopeEl ? scopeEl.value : 'user';
       if (scope === 'user') showClearStep(3); // 3a
       else showClearStep(4); // 3b
     } else {
-      document.getElementById('clear-step2-error').textContent = 'Please type DELETE exactly.';
+      const errorEl = document.getElementById('clear-step2-error');
+      if (errorEl) errorEl.textContent = 'Please type DELETE exactly.';
     }
   });
 
@@ -130,8 +172,11 @@ function setupClearDataEvents() {
 }
 
 function setupLoginEvents() {
-  document.getElementById('login-submit-btn').addEventListener('click', handleLogin);
-  document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+  const loginBtn = document.getElementById('login-submit-btn');
+  if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+
+  const loginPw = document.getElementById('login-password');
+  if (loginPw) loginPw.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 }
 
 function setupMobileTabs() {
