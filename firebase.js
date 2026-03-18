@@ -30,39 +30,3 @@ window._onAuthStateChanged = onAuthStateChanged;
 window._doc    = doc;
 window._getDoc = getDoc;
 window._setDoc = setDoc;
-
-// FIX: Call init() directly from the module script to guarantee no race conditions with DOMContentLoaded.
-init();
-
-// FIX: onAuthStateChanged is called from inside the module script to avoid race conditions.
-  // Firebase auth state is the single gate — fires on page load automatically
-  onAuthStateChanged(fbAuth, async (user) => {
-    if (user) {
-      currentUser = user;
-      const emailEl = document.getElementById('settings-user-email');
-      if (emailEl) emailEl.textContent = user.email;
-      await loadData();
-      applyTheme(data.settings.theme);
-      hideLoginScreen();
-      updateTopBar();
-      renderAll();
-      // Auto-fullscreen if the user has it enabled
-      if (data.settings.alwaysFullscreen && !document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(()=>{});
-      }
-      setInterval(updateTopBar, 60000);
-      checkWeeklyBackupNudge();
-      setTimeout(checkAndShowWelcome, 400);
-    } else {
-      currentUser = null;
-      // Load defaults for theme before showing login
-      try {
-        // Use plain fallback key — no user UID available when logged out
-        const raw = localStorage.getItem('jgsuffu_data');
-        data = raw ? JSON.parse(raw) : defaultData();
-        normalizeData();
-      } catch(e) { data = defaultData(); }
-      applyTheme(data.settings.theme);
-      showLoginScreen();
-    }
-  });
