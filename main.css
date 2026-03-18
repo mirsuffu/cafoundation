@@ -548,15 +548,23 @@ body.editor-locked .plan-input:hover { border-color: transparent; background: tr
   #metrics-section .section-body { grid-template-columns: 1fr; grid-template-rows: none; }
 }
 
-.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; overflow: hidden; min-height: 200px; }
-.metric-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; overflow: hidden; min-height: 180px; }
+.metric-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
 
-#donut-wrap { display: flex; align-items: center; justify-content: center; gap: 20px; flex: 1; padding: 10px 0; }
-#donut-canvas { flex-shrink: 0; }
-#donut-info { display: flex; flex-direction: column; gap: 4px; }
-#donut-pct { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--accent); }
-#donut-label { font-size: 12px; color: var(--text2); font-weight: 500; }
-#donut-ticks { font-size: 11px; color: var(--text2); opacity: 0.8; }
+#donut-wrap { display: flex; align-items: center; justify-content: flex-start; gap: 24px; flex: 1; padding: 4px 0; }
+#donut-canvas { flex-shrink: 0; width: 120px; height: 120px; }
+#donut-info { display: flex; flex-direction: column; gap: 2px; }
+#donut-pct { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; color: var(--accent); line-height: 1; }
+#donut-label { font-size: 13px; color: var(--text2); font-weight: 600; margin-top: 4px; }
+#donut-ticks { font-size: 12px; color: var(--text2); opacity: 0.7; margin-top: 2px; }
+
+@media (max-width: 768px) {
+  #donut-wrap { justify-content: center; gap: 16px; padding: 12px 0; }
+  #donut-canvas { width: 100px; height: 100px; }
+  #donut-pct { font-size: 32px; }
+  #donut-label { font-size: 12px; }
+  #donut-ticks { font-size: 11px; }
+}
 
 .subj-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .subj-bar-label { font-size: 12px; font-weight: 600; width: 85px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
