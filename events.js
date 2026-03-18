@@ -51,12 +51,12 @@ function setupEvents() {
   setupClearDataEvents();
 
   document.getElementById('add-test-btn').addEventListener('click', openTestModal);
-  document.getElementById('tf-cancel-btn').addEventListener('click', closeTestModal);
-  document.getElementById('tf-save-btn').addEventListener('click', saveTestRecord);
+  document.getElementById('test-cancel-btn').addEventListener('click', closeTestModal);
+  document.getElementById('test-save-btn').addEventListener('click', saveTestRecord);
   document.querySelectorAll('#tf-confidence-stars .star-pick').forEach(s => s.addEventListener('click', () => updateTestStars(parseInt(s.dataset.val))));
 
-  document.getElementById('te-cancel-btn').addEventListener('click', closeTestEditModal);
-  document.getElementById('te-save-btn').addEventListener('click', saveTestEdit);
+  document.getElementById('test-edit-cancel-btn').addEventListener('click', closeTestEditModal);
+  document.getElementById('test-edit-save-btn').addEventListener('click', saveTestEdit);
   document.querySelectorAll('#te-confidence-stars .star-pick').forEach(s => s.addEventListener('click', () => updateTestEditStars(parseInt(s.dataset.val))));
 
   document.getElementById('test-filter-subj').addEventListener('change', renderTestTable);
@@ -89,21 +89,44 @@ function setupEvents() {
 }
 
 function setupClearDataEvents() {
-  document.getElementById('clear-cancel-btn').addEventListener('click', closeClearModal);
-  document.getElementById('clear-step1-next').addEventListener('click', advanceClearStep2);
-  document.getElementById('clear-step2-next').addEventListener('click', () => {
-    if (document.getElementById('clear-confirm-text').value === 'DELETE') { showClearStep(4); }
-    else { document.getElementById('clear-step2-error').textContent = 'Please type DELETE exactly.'; }
+  // Step 1
+  const cancel1 = document.getElementById('clear-cancel-1');
+  if (cancel1) cancel1.addEventListener('click', closeClearModal);
+  
+  const exportNext = document.getElementById('clear-export-then-next');
+  if (exportNext) exportNext.addEventListener('click', () => { exportData(); advanceClearStep2(); });
+
+  const next1 = document.getElementById('clear-next-1');
+  if (next1) next1.addEventListener('click', advanceClearStep2);
+
+  // Step 2
+  const back2 = document.getElementById('clear-back-2');
+  if (back2) back2.addEventListener('click', () => showClearStep(1));
+
+  const next2 = document.getElementById('clear-next-2');
+  if (next2) next2.addEventListener('click', () => {
+    if (document.getElementById('clear-confirm-text').value.toUpperCase() === 'DELETE') {
+      const scope = document.querySelector('input[name="clear-scope"]:checked').value;
+      if (scope === 'user') showClearStep(3); // 3a
+      else showClearStep(4); // 3b
+    } else {
+      document.getElementById('clear-step2-error').textContent = 'Please type DELETE exactly.';
+    }
   });
-  document.getElementById('clear-step3-next').addEventListener('click', () => {
-    const scope = document.querySelector('input[name="clear-scope"]:checked').value;
-    if (scope === 'all') showClearStep(3); else advanceClearStep2();
-  });
-  document.getElementById('clear-step3b-next').addEventListener('click', advanceClearStep3b);
-  document.getElementById('clear-step4-confirm').addEventListener('click', () => {
-    const scope = document.querySelector('input[name="clear-scope"]:checked').value;
-    if (scope === 'user') doClearUserData(); else doClearAllData();
-  });
+
+  // Step 3a (User Data)
+  const cancel3a = document.getElementById('clear-cancel-3a');
+  if (cancel3a) cancel3a.addEventListener('click', closeClearModal);
+
+  const confirm3a = document.getElementById('clear-confirm-3a');
+  if (confirm3a) confirm3a.addEventListener('click', doClearUserData);
+
+  // Step 3b (Everything)
+  const cancel3b = document.getElementById('clear-cancel-3b');
+  if (cancel3b) cancel3b.addEventListener('click', closeClearModal);
+
+  const confirm3b = document.getElementById('clear-confirm-3b');
+  if (confirm3b) confirm3b.addEventListener('click', advanceClearStep3b);
 }
 
 function setupLoginEvents() {
