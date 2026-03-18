@@ -13,7 +13,7 @@ function renderSettings() {
   if (fsTrack) fsTrack.classList.toggle('on', !!data.settings.alwaysFullscreen);
 
   applyTheme(data.settings.theme);
-  setEditorMode(editorUnlocked);
+  setEditorMode(editorUnlocked, { showFeedback: false, reRenders: false });
 }
 
 function saveSettings() {
