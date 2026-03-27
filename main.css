@@ -534,17 +534,7 @@ body.editor-locked .plan-input:hover { border-color: transparent; background: tr
 .chapter-row:hover { background: var(--surface-el); }
 .chapter-name { flex: 1; font-weight: 500; }
 .chapter-name-input { flex: 1; font-weight: 500; padding: 3px 8px; font-size: 13px; }
-.level-group { display: flex; gap: 4px; }
-.level-btn {
-  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
-  background: var(--surface-el); color: var(--text2); border: 1px solid var(--border);
-  cursor: pointer; transition: all 0.15s; text-transform: uppercase;
-}
-.level-btn:hover { border-color: var(--accent); color: var(--accent); }
-.level-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 0 8px rgba(124,111,205,0.4); }
-.level-btn[data-level="1"].active { background: var(--success); border-color: var(--success); box-shadow: 0 0 8px rgba(109,191,138,0.4); }
-.level-btn[data-level="2"].active { background: var(--warning); border-color: var(--warning); box-shadow: 0 0 8px rgba(224,169,109,0.4); }
-.level-btn[data-level="3"].active { background: var(--danger); border-color: var(--danger); box-shadow: 0 0 8px rgba(224,112,112,0.4); }
+/* Removed level-btn and star styles */
 .priority-flag { font-size: 14px; min-width: 18px; text-align: center; }
 .chapter-del { color: var(--danger); opacity: 0; font-size: 14px; cursor: pointer; transition: opacity 0.2s; }
 .chapter-row:hover .chapter-del { opacity: 1; }
