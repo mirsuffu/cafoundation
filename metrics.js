@@ -74,9 +74,16 @@ function renderMetrics() {
       const avgConf = totalCh ? (subjData.chapters.reduce((a, c) => a + c.confidence, 0) / totalCh).toFixed(1) : '0.0';
       
       const item = document.createElement('div'); item.className = 'conf-item';
+      const getLevelLabel = (val) => {
+        val = parseFloat(val);
+        if (val >= 2.5) return 'High';
+        if (val >= 1.5) return 'Medium';
+        if (val > 0) return 'Low';
+        return '—';
+      };
       item.innerHTML = `<div class="conf-subj" style="color:${SUBJECT_COLORS[s]}">${SUBJECT_LABELS[s]}</div>`
-                     + `<div class="conf-val-row"><span>Difficulty</span><span class="conf-val-num">${avgDiff}</span></div>`
-                     + `<div class="conf-val-row"><span>Confidence</span><span class="conf-val-num">${avgConf}</span></div>`;
+                     + `<div class="conf-val-row"><span>Difficulty</span><span class="conf-val-num">${avgDiff} <small style="font-weight:400;opacity:0.6">(${getLevelLabel(avgDiff)})</small></span></div>`
+                     + `<div class="conf-val-row"><span>Confidence</span><span class="conf-val-num">${avgConf} <small style="font-weight:400;opacity:0.6">(${getLevelLabel(avgConf)})</small></span></div>`;
       confGrid.appendChild(item);
     });
   }
