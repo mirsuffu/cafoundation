@@ -204,4 +204,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const pct = e.offsetY / track.clientHeight;
     wrap.scrollTop = pct * (wrap.scrollHeight - wrap.clientHeight);
   });
+
+  // Welcome Dive In
+  document.getElementById('welcome-dive-btn').addEventListener('click', () => { 
+    playSound('click'); 
+    closeWelcome(); 
+  });
+
+  // Sign Out
+  document.getElementById('logout-btn').addEventListener('click', () => { 
+    playSound('click'); 
+    openLogoutModal(); 
+  });
+  document.getElementById('logout-cancel-btn').addEventListener('click', () => { 
+    playSound('click'); 
+    closeLogoutModal(); 
+  });
+  document.getElementById('logout-confirm-btn').addEventListener('click', () => { 
+    playSound('click'); 
+    confirmLogout(); 
+  });
+
+  // Manual Sync
+  document.getElementById('sync-btn').addEventListener('click', async () => {
+    playSound('click');
+    showToast('Syncing data... 🔄', 'info');
+    try {
+      await loadData();
+      renderAll();
+      showToast('Sync complete! Fresh app loaded. ✅', 'success');
+    } catch (e) {
+      showToast('Sync failed. Please check your connection.', 'error');
+    }
+  });
 });
