@@ -49,7 +49,8 @@ function renderTestTable() {
       var isDue = t.isScheduled && t.date <= todayStr;
       
       var subjLabel = t.subject === 'all' ? 'All Subjects' : (SUBJECT_LABELS[t.subject] || t.subject);
-      var stars = '★'.repeat(t.confidence || 0) + '☆'.repeat(5 - (t.confidence || 0));
+      var confLevels = { 1: 'Low', 2: 'Medium', 3: 'High' };
+      var confLabel = confLevels[t.confidence] || '—';
       var card = document.createElement('div'); 
       card.className = 'tcard' + (isOverdue ? ' overdue' : '');
       
@@ -69,7 +70,7 @@ function renderTestTable() {
       sc.textContent = t.isScheduled ? '⏳ Pending' : (t.score ? '🎯 ' + t.score : '');
       
       var st = document.createElement('span'); st.className = 'tcard-stars'; 
-      st.textContent = t.isScheduled ? (t.duration ? t.duration + ' mins' : '—') : stars;
+      st.textContent = t.isScheduled ? (t.duration ? t.duration + ' mins' : '—') : confLabel;
       
       r2.append(co, sc, st); card.appendChild(r2);
       
@@ -106,12 +107,13 @@ function renderTestTable() {
       var tr = document.createElement('tr'); 
       tr.className = 'test-row' + (isOverdue ? ' overdue' : '');
       
-      var stars = '★'.repeat(t.confidence || 0) + '☆'.repeat(5 - (t.confidence || 0));
+      var confLevels = { 1: 'Low', 2: 'Medium', 3: 'High' };
+      var confLabel = confLevels[t.confidence] || '—';
       var subjLabel = t.subject === 'all' ? 'All Subjects' : (SUBJECT_LABELS[t.subject] || t.subject);
       
       var typeBadgeHtml = t.isScheduled ? '<span class="test-type-badge test-type-Scheduled">Scheduled</span>' : '<span class="test-type-badge test-type-' + t.type + '">' + t.type + '</span>';
       var scoreHtml = t.isScheduled ? '<span style="color:var(--text2);">⏳ Pending</span>' : (t.score || '—');
-      var starOrTimeHtml = t.isScheduled ? (t.duration ? t.duration + ' mins' : '—') : ('<span class="test-star-display">' + stars + '</span>');
+      var starOrTimeHtml = t.isScheduled ? (t.duration ? t.duration + ' mins' : '—') : ('<span class="test-conf-display" style="font-weight:600;">' + confLabel + '</span>');
       var noteStr = t.isScheduled ? t.note : t.comment;
       
       var actionHtml = '<td style="display:flex;gap:6px;align-items:center;justify-content:flex-end;">';
@@ -161,14 +163,25 @@ function openTestEditModal(id) {
   document.getElementById('te-type').value = t.type;
   document.getElementById('te-score').value = t.score || '';
   document.getElementById('te-comment').value = t.comment || '';
-  updateTestEditStars(testEditConfidenceVal);
+  initLevelPicker('te-confidence-levels', t.confidence || 2, (v) => { testEditConfidenceVal = v; });
   playSound('pop');
   document.getElementById('test-edit-modal').classList.add('show');
 }
 function closeTestEditModal() { document.getElementById('test-edit-modal').classList.remove('show'); testEditId = null; }
-function updateTestEditStars(val) {
-  testEditConfidenceVal = val;
-  document.querySelectorAll('#te-confidence-stars .star-pick').forEach(s => s.classList.toggle('on', parseInt(s.dataset.val) <= val));
+function initLevelPicker(containerId, initVal, onChangeFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const btns = container.querySelectorAll('.level-btn');
+  btns.forEach(btn => {
+    const val = parseInt(btn.dataset.val);
+    btn.classList.toggle('active', val === initVal);
+    btn.onclick = () => {
+      playSound('click');
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChangeFn(val);
+    };
+  });
 }
 function saveTestEdit() {
   if (!testEditId) return;
@@ -209,7 +222,8 @@ function openTestModal(prefillId = null) {
   
   document.getElementById('tf-score').value = '';
   document.getElementById('tf-comment').value = '';
-  updateTestStars(3);
+  initLevelPicker('tf-confidence-levels', 2, (v) => { testConfidenceVal = v; });
+  testConfidenceVal = 2;
   playSound('pop');
   document.getElementById('test-modal').classList.add('show');
 }
@@ -218,10 +232,7 @@ function closeTestModal() {
   document.getElementById('test-modal').classList.remove('show'); 
   window.completingScheduledTestId = null;
 }
-function updateTestStars(val) {
-  testConfidenceVal = val;
-  document.querySelectorAll('#tf-confidence-stars .star-pick').forEach(s => s.classList.toggle('on', parseInt(s.dataset.val) <= val));
-}
+// Removed updateTestStars
 
 function saveTestRecord() {
   const date = document.getElementById('tf-date').value;
