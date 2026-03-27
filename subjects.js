@@ -2,25 +2,32 @@
 // SUBJECTS & CHAPTERS RENDER
 // ============================================================
 function getPriorityFlag(d, c) {
-  if (d >= 4 && c <= 2) return '<span style="color:var(--danger)" title="High Priority">⚑</span>';
-  if (d >= 3 && c <= 2) return '<span style="color:var(--warning)" title="Medium Priority">⚑</span>';
+  if (d >= 3 && c <= 1) return '<span style="color:var(--danger)" title="High Priority">⚑</span>';
+  if ((d >= 2 && c <= 1) || (d >= 3 && c <= 2)) return '<span style="color:var(--warning)" title="Medium Priority">⚑</span>';
   return '';
 }
 
-function makeStarGroup(container, initVal, onChangeFn) {
+function makeLevelGroup(container, initVal, onChangeFn) {
   container.innerHTML = '';
-  let live = initVal;
-  for (let i = 1; i <= 5; i++) {
-    const s = document.createElement('span');
-    s.className = 'star' + (i <= initVal ? ' filled' : ''); s.textContent = '★';
-    s.addEventListener('mouseenter', () => container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < i)));
-    s.addEventListener('mouseleave', () => container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < live)));
-    s.addEventListener('click', () => { 
+  container.className = 'level-group';
+  const levels = [
+    { val: 1, label: 'Low' },
+    { val: 2, label: 'Med' },
+    { val: 3, label: 'High' }
+  ];
+  levels.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'level-btn' + (initVal === l.val ? ' active' : '');
+    btn.textContent = l.label;
+    btn.dataset.level = l.val;
+    btn.onclick = () => {
       playSound('click');
-      live = i; container.querySelectorAll('.star').forEach((st, idx) => st.classList.toggle('filled', idx < i)); onChangeFn(i); 
-    });
-    container.appendChild(s);
-  }
+      container.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChangeFn(l.val);
+    };
+    container.appendChild(btn);
+  });
 }
 
 function renderSubjectsInternal() {
@@ -33,7 +40,9 @@ function renderSubjectsInternal() {
     block.className = 'subject-block' + (isOpen ? ' open' : '');
     block.dataset.subjid = subj.id;
     var avgConf = subj.chapters.length ? (subj.chapters.reduce(function (a, c) { return a + c.confidence; }, 0) / subj.chapters.length).toFixed(1) : '—';
-    var flags = subj.chapters.filter(function (c) { return c.difficulty >= 3 && c.confidence <= 2; }).length;
+    var flags = subj.chapters.filter(function (c) { 
+        return (c.difficulty >= 3 && c.confidence <= 1) || (c.difficulty >= 2 && c.confidence <= 1) || (c.difficulty >= 3 && c.confidence <= 2);
+    }).length;
     var header = document.createElement('div'); header.className = 'subject-header';
     header.innerHTML = '<span class="subject-name">' + subj.name + '</span>'
       + '<div class="subject-meta"><span>📖 ' + subj.chapters.length + ' chapters</span>'
@@ -72,12 +81,12 @@ function renderSubjectsInternal() {
         if(currentSection === 'metrics') renderMetrics(); 
       });
 
-      var dl = document.createElement('span'); dl.className = 'rating-label'; dl.textContent = 'Difficulty';
-      var ds = document.createElement('span'); ds.className = 'star-group';
-      (function (ch, flag) { makeStarGroup(ds, ch.difficulty, function (v) { ch.difficulty = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
-      var cl = document.createElement('span'); cl.className = 'rating-label'; cl.textContent = 'Confidence';
-      var cs = document.createElement('span'); cs.className = 'star-group';
-      (function (ch, flag) { makeStarGroup(cs, ch.confidence, function (v) { ch.confidence = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      var dl = document.createElement('span'); dl.className = 'rating-label'; dl.textContent = 'Diff';
+      var ds = document.createElement('span'); ds.className = 'level-group';
+      (function (ch, flag) { makeLevelGroup(ds, ch.difficulty, function (v) { ch.difficulty = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      var cl = document.createElement('span'); cl.className = 'rating-label'; cl.textContent = 'Conf';
+      var cs = document.createElement('span'); cs.className = 'level-group';
+      (function (ch, flag) { makeLevelGroup(cs, ch.confidence, function (v) { ch.confidence = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
       
       if (mobile) {
         var rrow = document.createElement('div'); rrow.className = 'chapter-ratings-mobile';
@@ -106,7 +115,7 @@ function renderSubjectsInternal() {
     bodyEl.appendChild(chapterList);
     if (editorUnlocked) {
       var ab = document.createElement('button'); ab.className = 'subject-add-btn'; ab.textContent = '+ Add Chapter';
-      (function (subj) { ab.addEventListener('click', function () { playSound('click'); openSubjects.add(subj.id); subj.chapters.push({ id: generateId('ch'), name: 'New Chapter', difficulty: 3, confidence: 3, status: 'Pending' }); saveData(); renderSubjectsInternal(); }); })(subj);
+      (function (subj) { ab.addEventListener('click', function () { playSound('click'); openSubjects.add(subj.id); subj.chapters.push({ id: generateId('ch'), name: 'New Chapter', difficulty: 2, confidence: 2, status: 'Pending' }); saveData(); renderSubjectsInternal(); }); })(subj);
       bodyEl.appendChild(ab);
     }
     block.append(header, bodyEl); body.appendChild(block);
@@ -115,7 +124,7 @@ function renderSubjectsInternal() {
 
 function refreshSubjectMeta(subj, header) {
   const avgConf = subj.chapters.length ? (subj.chapters.reduce((a, c) => a + c.confidence, 0) / subj.chapters.length).toFixed(1) : '—';
-  const flags = subj.chapters.filter(c => c.difficulty >= 3 && c.confidence <= 2).length;
+  const flags = subj.chapters.filter(c => (c.difficulty >= 3 && c.confidence <= 1) || (c.difficulty >= 2 && c.confidence <= 1) || (c.difficulty >= 3 && c.confidence <= 2)).length;
   const meta = header.querySelector('.subject-meta');
   if (meta) meta.innerHTML = `<span>📖 ${subj.chapters.length} chapters</span><span>⭐ Avg Conf: ${avgConf}</span>${flags ? `<span style="color:var(--warning)">⚑ ${flags} flagged</span>` : ''}`;
 }
