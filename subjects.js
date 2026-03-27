@@ -7,27 +7,18 @@ function getPriorityFlag(d, c) {
   return '';
 }
 
-function makeLevelGroup(container, initVal, onChangeFn) {
+function makeLevelDropdown(container, initVal, onChangeFn) {
   container.innerHTML = '';
-  container.className = 'level-group';
-  const levels = [
-    { val: 1, label: 'Low' },
-    { val: 2, label: 'Med' },
-    { val: 3, label: 'High' }
-  ];
-  levels.forEach(l => {
-    const btn = document.createElement('button');
-    btn.className = 'level-btn' + (initVal === l.val ? ' active' : '');
-    btn.textContent = l.label;
-    btn.dataset.level = l.val;
-    btn.onclick = () => {
-      playSound('click');
-      container.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      onChangeFn(l.val);
-    };
-    container.appendChild(btn);
-  });
+  const sel = document.createElement('select');
+  sel.className = 'chapter-level-select form-input';
+  sel.style.cssText = 'font-size:11px; padding:2px 6px; border-radius:4px; height:22px; cursor:pointer;';
+  sel.innerHTML = '<option value="1">Low</option><option value="2">Medium</option><option value="3">High</option>';
+  sel.value = initVal;
+  sel.onchange = () => {
+    playSound('click');
+    onChangeFn(parseInt(sel.value));
+  };
+  container.appendChild(sel);
 }
 
 function renderSubjectsInternal() {
@@ -69,6 +60,7 @@ function renderSubjectsInternal() {
       }
       var flag = document.createElement('span'); flag.className = 'priority-flag'; flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence);
       
+      var statLabel = document.createElement('span'); statLabel.className = 'rating-label'; statLabel.textContent = 'Status';
       var statSel = document.createElement('select');
       statSel.className = 'chapter-status-select form-input';
       statSel.style.cssText = 'font-size:11px; padding:2px 6px; border-radius:4px; height:22px; margin-right:6px; cursor:pointer;';
@@ -82,15 +74,16 @@ function renderSubjectsInternal() {
       });
 
       var dl = document.createElement('span'); dl.className = 'rating-label'; dl.textContent = 'Diff';
-      var ds = document.createElement('span'); ds.className = 'level-group';
-      (function (ch, flag) { makeLevelGroup(ds, ch.difficulty, function (v) { ch.difficulty = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      var ds = document.createElement('span'); ds.className = 'level-dropdown-wrap';
+      (function (ch, flag) { makeLevelDropdown(ds, ch.difficulty, function (v) { ch.difficulty = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
       var cl = document.createElement('span'); cl.className = 'rating-label'; cl.textContent = 'Conf';
-      var cs = document.createElement('span'); cs.className = 'level-group';
-      (function (ch, flag) { makeLevelGroup(cs, ch.confidence, function (v) { ch.confidence = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
+      var cs = document.createElement('span'); cs.className = 'level-dropdown-wrap';
+      (function (ch, flag) { makeLevelDropdown(cs, ch.confidence, function (v) { ch.confidence = v; saveData(); flag.innerHTML = getPriorityFlag(ch.difficulty, ch.confidence); refreshSubjectMeta(subj, header); }); })(ch, flag);
       
       if (mobile) {
         var rrow = document.createElement('div'); rrow.className = 'chapter-ratings-mobile';
-        rrow.append(statSel, dl, ds, cl, cs, flag);
+        rrow.style.cssText = 'display:flex; align-items:center; gap:4px; flex-wrap:nowrap; width:100%; overflow-x:auto;';
+        rrow.append(statLabel, statSel, dl, ds, cl, cs, flag);
         if (editorUnlocked) {
           var acts = document.createElement('div'); acts.style.cssText = 'display:flex; gap:8px; margin-left:auto; align-items:center;';
           (function (ci) { up.addEventListener('click', function () { playSound('click'); if (ci > 0) { var t = subj.chapters[ci - 1]; subj.chapters[ci - 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
@@ -102,7 +95,7 @@ function renderSubjectsInternal() {
         row.appendChild(rrow);
       } else {
         cl.style.marginLeft = '10px';
-        row.append(statSel, flag, dl, ds, cl, cs);
+        row.append(statLabel, statSel, flag, dl, ds, cl, cs);
         if (editorUnlocked) {
           (function (ci) { up.addEventListener('click', function () { playSound('click'); if (ci > 0) { var t = subj.chapters[ci - 1]; subj.chapters[ci - 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
           (function (ci) { dn.addEventListener('click', function () { playSound('click'); if (ci < subj.chapters.length - 1) { var t = subj.chapters[ci + 1]; subj.chapters[ci + 1] = subj.chapters[ci]; subj.chapters[ci] = t; saveData(); renderSubjectsInternal(); } }); })(ci);
