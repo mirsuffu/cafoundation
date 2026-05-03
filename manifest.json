@@ -1,0 +1,21 @@
+{
+  "name": "JG. SUFFU — CA Foundation Tracker",
+  "short_name": "CAF Tracker",
+  "description": "Track your CA Foundation study progress, tests, and schedule.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0d12",
+  "theme_color": "#7c6fcd",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

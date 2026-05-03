@@ -1,0 +1,45 @@
+// ============================================================
+// IMPORT & EXPORT
+// ============================================================
+function exportData() {
+  const today = toDateStr(new Date());
+  const exportPayload = {
+    ...data,
+    _signature: APP_SIGNATURE,
+    _exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'jgsuffu-backup-' + today + '.json'; a.click();
+  URL.revokeObjectURL(url);
+  if (typeof window.logActivity === 'function') window.logActivity('Exported Data');
+  showToast('Backed up! A smart move by a smart student 💾', 'success');
+}
+
+function handleImportFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  pendingImportFile = file;
+  playSound('pop');
+  document.getElementById('import-modal').classList.add('show');
+  e.target.value = '';
+}
+
+function confirmImport() {
+  if (!pendingImportFile) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      data = imported;
+      delete data._signature;
+      delete data._exportedAt;
+      normalizeData();
+      saveData(); renderAll();
+      if (typeof window.logActivity === 'function') window.logActivity('Imported Data');
+      showToast('Data imported! Welcome back to the grind, let\'s crush it 💪', 'success');
+    }
+    catch (err) { showToast('That file is cooked 🤌 Not valid JSON.', 'error'); }
+    pendingImportFile = null; document.getElementById('import-modal').classList.remove('show');
+  };
+  reader.readAsText(pendingImportFile);
+}
